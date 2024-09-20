@@ -15,6 +15,33 @@ import fs from "fs";
 // import { getAllItems, queryItems } from "$lib/cosmosClient";
 import { carprices } from "./carprices";
 
+function getRandomGermanFirstnames(n = 5) {
+  // List of common German first names
+  const germanFirstnames = [
+    "Lukas", "Leon", "Luca", "Ben", "Finn", "Elias",
+    "Paul", "Noah", "Tim", "Luis", "Jonas", "Lara",
+    "Anna", "Mia", "Lea", "Emma", "Sophie", "Marie",
+    "Lina", "Emilia", "Hannah", "Laura", "Ella", "Sophia"
+  ];
+
+  // Ensure n is not greater than the number of available names
+  n = Math.min(n, germanFirstnames.length);
+
+  // Select n random names without replacement
+  const selectedNames = [];
+  const usedIndices = new Set();
+
+  while (selectedNames.length < n) {
+    const randomIndex = Math.floor(Math.random() * germanFirstnames.length);
+    if (!usedIndices.has(randomIndex)) {
+      usedIndices.add(randomIndex);
+      selectedNames.push(germanFirstnames[randomIndex]);
+    }
+  }
+
+  return selectedNames;
+}
+
 const systemPrompt = await fs.promises.readFile("src/system-prompt.md", {
   encoding: "utf-8",
 });
@@ -50,6 +77,30 @@ async function getExternalData(
       return await vehiclesResponse.text();
     case "get_vehicle_price_info":
       return JSON.stringify(carprices);
+    case "get_train_schedule":
+      return JSON.stringify({
+        delayed: true,
+        delayTime: '15min',
+        recommendation: 'Use Rail&Drive to get to the destination'
+      });
+    case "get_other_rides": {
+      return JSON.stringify([{
+        name: getRandomGermanFirstnames(1)[0],
+        from: parameters.from,
+        to: parameters.to,
+        drivingStyle: 'Very calm in previous rides'
+      }]);
+    }
+    case "book_rental_car": {
+      return JSON.stringify([{
+        fromTime: parameters.fromTime,
+        toTime: parameters.toTime,
+        fromLocation: parameters.fromLocation,
+        toLocation: parameters.toLocation,
+        status: "Sucessfull",
+        note: "Car will be ready in time and please make sure the tank is fulled up at the end"
+      }]);
+    }
     default:
       return "I couldn't find the requested information.";
   }
@@ -90,8 +141,8 @@ const tools: ChatCompletionTool[] = [
   {
     type: "function",
     function: {
-      name: "get_train_schedule",
-      description: "Get the next train schedule between two stations",
+      name: "get_other_rides",
+      description: "Finds other people that also use rail and drive with the same goal or close",
       parameters: {
         type: "object",
         properties: {
@@ -101,10 +152,64 @@ const tools: ChatCompletionTool[] = [
           },
           to: {
             type: "string",
-            description: "The arrival station",
+            description: "The destination station",
+          },
+          exactStartAndEnd: {
+            type: "boolean",
+            description: "Describes if the user is fine with also nearby stations that are not exactly the same",
           },
         },
-        required: ["from", "to"],
+        required: ["from", "to", "exactStartAndEnd"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "book_rental_car",
+      description: "Can book a rental car for the user or reserve it.",
+      parameters: {
+        type: "object",
+        properties: {
+          fromLocation: {
+            type: "string",
+            description: "The departure station",
+          },
+          toLocation: {
+            type: "string",
+            description: "The destination station",
+          },
+          fromTime: {
+            type: "string",
+            description: "The date description when the rental starts",
+          },
+          endsTime: {
+            type: "string",
+            description: "The date description when  the estimated rental ends ",
+          },
+          reservedOnly: {
+            type: "boolean",
+            description: "Describes if the user is fine with also nearby stations that are not exactly the same",
+          },
+        },
+        required: ["fromLocation", "toLocation", "fromTime", "endsTime"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "get_train_schedule",
+      description: "Get the next train schedule between two stations",
+      parameters: {
+        type: "object",
+        properties: {
+          from: {
+            type: "string",
+            description: "The departure station",
+          },
+        },
+        required: ["from"],
       },
     },
   },
