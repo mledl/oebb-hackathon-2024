@@ -12,7 +12,7 @@
 
 <main>
   <header>
-    <img src="/obb-logo.svg" alt="ÖBB Rail&Drive Logo" class="logo">
+    <img src="/oebb-logo.jpg" alt="ÖBB Rail&Drive Logo" class="logo">
     <h1>ÖBB Rail&Drive Chatbot</h1>
   </header>
 
@@ -38,13 +38,13 @@
 <style>
   :global(body) {
     font-family: 'Open Sans', sans-serif;
-    background-color: #f0f0f0;
+    background-color: #ffffff;
     margin: 0;
     padding: 0;
   }
 
   main {
-    max-width: 800px;
+    max-width: 1200px;
     margin: 0 auto;
     padding: 20px;
   }
@@ -52,57 +52,64 @@
   header {
     display: flex;
     align-items: center;
-    margin-bottom: 20px;
+    margin-bottom: 30px;
+    background-color: #0c2340;
+    padding: 15px;
+    border-radius: 8px;
   }
 
   .logo {
-    height: 40px;
+    height: 30px;
     margin-right: 15px;
   }
 
   h1 {
-    color: #0f4b7f;
+    color: #ffffff;
     font-size: 24px;
+    font-weight: 600;
   }
 
   .chat-container {
-    background-color: white;
+    background-color: #f2f2f2;
     border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     overflow: hidden;
   }
 
   .chat-output {
     min-height: 200px;
     padding: 20px;
-    background-color: #f9f9f9;
+    background-color: #ffffff;
     border-bottom: 1px solid #e0e0e0;
   }
 
   form {
     display: flex;
-    padding: 10px;
+    padding: 15px;
+    background-color: #f2f2f2;
   }
 
   input {
     flex-grow: 1;
-    padding: 10px;
-    border: 1px solid #ccc;
+    padding: 12px;
+    border: 1px solid #cccccc;
     border-radius: 4px;
     margin-right: 10px;
+    font-size: 16px;
   }
 
   button {
-    background-color: #0f4b7f;
+    background-color: #cc0033;
     color: white;
     border: none;
-    padding: 10px 20px;
+    padding: 12px 24px;
     border-radius: 4px;
     cursor: pointer;
     transition: background-color 0.3s;
+    font-size: 16px;
+    font-weight: 600;
   }
 
   button:hover {
-    background-color: #0d3d66;
+    background-color: #a3002a;
   }
 </style>
