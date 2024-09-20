@@ -1,5 +1,8 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { marked } from 'marked';
+  import DOMPurify from 'dompurify';
+  import LoadingAnimation from '../components/LoadingAnimation.svelte';
 
   interface Message {
     text: string;
@@ -10,6 +13,7 @@
   let userInput = '';
   let conversation: Message[] = [];
   let chatContainer: HTMLElement;
+  let isLoading = false;
 
   onMount(() => {
     conversation = [
@@ -23,6 +27,12 @@
     const userMessage = userInput.trim();
     conversation = [...conversation, { text: userMessage, isUser: true, username: "Ridey" }];
     userInput = '';
+    isLoading = true;
+
+    // Scroll to bottom of chat
+    setTimeout(() => {
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }, 0);
 
     const response = await fetch('api/completions', {
       method: 'POST',
@@ -33,12 +43,18 @@
     });
 
     const data = await response.json();
+    isLoading = false;
     conversation = [...conversation, { text: data.aiMessage, isUser: false, username: "Railey" }];
 
-    // Scroll to bottom of chat
+    // Scroll to bottom of chat again after receiving the response
     setTimeout(() => {
       chatContainer.scrollTop = chatContainer.scrollHeight;
     }, 0);
+  }
+
+  function renderMarkdown(text: string): string {
+    const rawHtml = marked(text);
+    return DOMPurify.sanitize(rawHtml);
   }
 </script>
 
@@ -53,10 +69,18 @@
       <div class="message {message.isUser ? 'user' : 'bot'}">
         <div class="username">{message.username}</div>
         <div class="bubble">
-          {message.text}
+          {@html renderMarkdown(message.text)}
         </div>
       </div>
     {/each}
+    {#if isLoading}
+      <div class="message bot">
+        <div class="username">Railey</div>
+        <div class="bubble loading">
+          <LoadingAnimation color="#0c2340" />
+        </div>
+      </div>
+    {/if}
   </div>
 
   <form on:submit|preventDefault={handleSubmit}>
@@ -159,6 +183,11 @@
     border-bottom-left-radius: 4px;
   }
 
+  .bot .bubble.loading {
+    background-color: #f2f2f2;
+    border: 1px solid #e0e0e0;
+  }
+
   form {
     display: flex;
     padding: 15px;
@@ -191,5 +220,73 @@
 
   button:hover {
     background-color: #a3002a;
+  }
+
+  /* Markdown styles */
+  .bubble :global(p) {
+    margin: 0 0 10px 0;
+  }
+
+  .bubble :global(p:last-child) {
+    margin-bottom: 0;
+  }
+
+  .bubble :global(a) {
+    color: #0066cc;
+    text-decoration: none;
+  }
+
+  .bubble :global(a:hover) {
+    text-decoration: underline;
+  }
+
+  .bubble :global(ul), .bubble :global(ol) {
+    margin: 0 0 10px 0;
+    padding-left: 20px;
+  }
+
+  .bubble :global(li) {
+    margin-bottom: 5px;
+  }
+
+  .bubble :global(code) {
+    background-color: #f0f0f0;
+    padding: 2px 4px;
+    border-radius: 4px;
+    font-family: monospace;
+  }
+
+  .bubble :global(pre) {
+    background-color: #f0f0f0;
+    padding: 10px;
+    border-radius: 4px;
+    overflow-x: auto;
+  }
+
+  .bubble :global(pre code) {
+    background-color: transparent;
+    padding: 0;
+  }
+
+  .bubble :global(blockquote) {
+    border-left: 4px solid #ccc;
+    margin: 0 0 10px 0;
+    padding-left: 10px;
+    color: #666;
+  }
+
+  .bubble :global(table) {
+    border-collapse: collapse;
+    margin-bottom: 10px;
+  }
+
+  .bubble :global(th), .bubble :global(td) {
+    border: 1px solid #ccc;
+    padding: 8px;
+  }
+
+  .bubble :global(th) {
+    background-color: #f0f0f0;
+    font-weight: bold;
   }
 </style>
