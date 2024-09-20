@@ -3,6 +3,7 @@
   import { marked } from 'marked';
   import DOMPurify from 'dompurify';
   import LoadingAnimation from '../components/LoadingAnimation.svelte';
+  import LocationFetcher from '../components/LocationFetcher.svelte';
 
   interface Message {
     text: string;
@@ -14,11 +15,36 @@
   let conversation: Message[] = [];
   let chatContainer: HTMLElement;
   let isLoading = false;
+  let userLocation = { lat: null, lon: null }; // Ensure userLocation is initialized globally
 
-  onMount(() => {
-    conversation = [
-      { text: "Hello! How can I assist you with ÖBB Rail&Drive today?", isUser: false, username: "Railey" }
-    ];
+  // Get the user's location
+  async function getUserLocation() {
+    return new Promise((resolve, reject) => {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            resolve({ lat: position.coords.latitude, lon: position.coords.longitude });
+          },
+          (error) => {
+            reject(error);
+          }
+        );
+      } else {
+        reject(new Error('Geolocation not supported.'));
+      }
+    });
+  }
+
+  // Fetch user location on page mount
+  onMount(async () => {
+    try {
+      userLocation = await getUserLocation();
+      conversation = [
+        { text: "Hello! How can I assist you with ÖBB Rail&Drive today?", isUser: false, username: "Railey" }
+      ];
+    } catch (error) {
+      console.error('Error fetching location: ', error);
+    }
   });
 
   async function handleSubmit() {
@@ -34,17 +60,27 @@
       chatContainer.scrollTop = chatContainer.scrollHeight;
     }, 0);
 
-    const response = await fetch('api/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ userMessage })
-    });
+    try {
+      // Ensure that the location is available before sending the request
+      if (!userLocation.lat || !userLocation.lon) {
+        userLocation = await getUserLocation(); // Fetch again if not already available
+      }
 
-    const data = await response.json();
-    isLoading = false;
-    conversation = [...conversation, { text: data.aiMessage, isUser: false, username: "Railey" }];
+      // Send the message along with the location data
+      const response = await fetch('/api/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ userMessage, userLocation }) // Pass the location data
+      });
+
+      const data = await response.json();
+      isLoading = false;
+      conversation = [...conversation, { text: data.aiMessage, isUser: false, username: "Railey" }];
+    } catch (error) {
+      console.error('Error in handleSubmit: ', error);
+    }
 
     // Scroll to bottom of chat again after receiving the response
     setTimeout(() => {
@@ -52,6 +88,7 @@
     }, 0);
   }
 
+  // Render markdown with sanitization
   function renderMarkdown(text: string): string {
     const rawHtml = marked(text);
     return DOMPurify.sanitize(rawHtml);
@@ -63,6 +100,10 @@
     <img src="/oebb-logo.png" alt="ÖBB Rail&Drive Logo" class="logo">
     <h1>ÖBB Rail&Drive Chatbot</h1>
   </header>
+
+  
+
+  <LocationFetcher />
 
   <div class="chat-container" bind:this={chatContainer}>
     {#each conversation as message}
@@ -92,6 +133,10 @@
     <button type="submit">Send</button>
   </form>
 </main>
+
+
+
+
 
 <style>
   :global(body) {
