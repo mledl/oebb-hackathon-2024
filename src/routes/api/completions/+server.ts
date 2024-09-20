@@ -8,6 +8,7 @@ import {
 import OpenAI from "openai";
 import type { ChatCompletionMessageParam, ChatCompletionTool, ChatCompletionCreateParams } from "openai/resources/index.mjs";
 import fs from "fs";
+import {carprices} from "./carprices";
 
 const systemPrompt = await fs.promises.readFile("src/system-prompt.md", {
   encoding: "utf-8",
@@ -35,7 +36,8 @@ async function getExternalData(action: string, parameters: any): Promise<string>
       const { branchId } = parameters;
       const vehiclesResponse = await fetch(`https://go.api.gourban.services/v1/go-red/front/vehicles/categories?branchId=${branchId}`);
       return await vehiclesResponse.text();
-
+    case "get_vehicle_price_info":
+      return JSON.stringify(carprices);
     default:
       return "I couldn't find the requested information.";
   }
@@ -64,6 +66,13 @@ const tools: ChatCompletionTool[] = [
         },
         required: ["branchId"],
       },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "get_vehicle_price_info",
+      description: "Get the pricing list for all vehicles",
     },
   },
   {
