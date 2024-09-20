@@ -28,8 +28,9 @@ const messages: ChatCompletionMessageParam[] = [
 async function getExternalData(action: string, parameters: any): Promise<string> {
   // In a real scenario, this function would make actual API calls
   switch (action) {
-    case "get_weather":
-      return `The weather in ${parameters.location} is sunny with a temperature of 22°C.`;
+    case "get_branches":
+      const response = await fetch('https://go.api.gourban.services/v1/go-red/front/branches');
+      return await response.text();
     case "get_train_schedule":
       return `The next train from ${parameters.from} to ${parameters.to} departs at 14:30.`;
     default:
@@ -41,18 +42,8 @@ const tools: ChatCompletionTool[] = [
   {
     type: "function",
     function: {
-      name: "get_weather",
-      description: "Get the current weather for a location",
-      parameters: {
-        type: "object",
-        properties: {
-          location: {
-            type: "string",
-            description: "The city and country, e.g. Vienna, Austria",
-          },
-        },
-        required: ["location"],
-      },
+      name: "get_branches",
+      description: "This endpoint returns a list of all booking locations.",
     },
   },
   {
