@@ -2,10 +2,17 @@
   let userInput = '';
   let chatbotResponse = '';
 
-  function handleSubmit() {
-    // This is where we'd typically call an API to get the chatbot's response
-    // For now, we'll just echo the user's input
-    chatbotResponse = `You said: ${userInput}`;
+  async function handleSubmit() {
+    const response = await fetch('/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ message: userInput })
+    });
+
+    const data = await response.json();
+    chatbotResponse = data.reply;
     userInput = '';
   }
 </script>
