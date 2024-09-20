@@ -1,0 +1,174 @@
+{
+  "price_list": {
+    "valid_from": "24.06.2024",
+    "vehicle_classes": [
+      {
+        "class": "Klein-PKW",
+        "examples": ["VW Polo", "Seat Ibiza"],
+        "pricing": {
+          "22-8_hours_per_hour": 1.80,
+          "8-22_hours_per_hour": 6.10,
+          "first_day_flat": 61.00,
+          "from_second_day_flat": 44.00,
+          "week_flat": 217.00,
+          "km_rate": 0.22
+        }
+      },
+      {
+        "class": "PKW",
+        "examples": ["VW Golf", "Seat Leon"],
+        "pricing": {
+          "22-8_hours_per_hour": 1.90,
+          "8-22_hours_per_hour": 6.70,
+          "first_day_flat": 67.00,
+          "from_second_day_flat": 46.00,
+          "week_flat": 243.00,
+          "km_rate": 0.23
+        }
+      },
+      {
+        "class": "PKW Kombi",
+        "examples": ["VW Golf Variant", "Seat Leon Kombi"],
+        "pricing": {
+          "22-8_hours_per_hour": 2.10,
+          "8-22_hours_per_hour": 7.20,
+          "first_day_flat": 72.00,
+          "from_second_day_flat": 51.00,
+          "week_flat": 268.00,
+          "km_rate": 0.23
+        }
+      },
+      {
+        "class": "PKW 4WD",
+        "examples": ["VW Tiguan", "Seat Ateca"],
+        "pricing": {
+          "22-8_hours_per_hour": 2.50,
+          "8-22_hours_per_hour": 8.60,
+          "first_day_flat": 86.00,
+          "from_second_day_flat": 60.00,
+          "week_flat": 322.00,
+          "km_rate": 0.25
+        }
+      },
+      {
+        "class": "VAN",
+        "examples": ["VW Caddy"],
+        "pricing": {
+          "22-8_hours_per_hour": 2.10,
+          "8-22_hours_per_hour": 7.20,
+          "first_day_flat": 72.00,
+          "from_second_day_flat": 51.00,
+          "week_flat": 268.00,
+          "km_rate": 0.25
+        }
+      },
+      {
+        "class": "Kombibus 9-sitzig",
+        "examples": ["VW 9-Sitzer Bus"],
+        "pricing": {
+          "22-8_hours_per_hour": 3.20,
+          "8-22_hours_per_hour": 9.90,
+          "first_day_flat": 99.00,
+          "from_second_day_flat": 77.00,
+          "week_flat": 376.00,
+          "km_rate": 0.32
+        }
+      },
+      {
+        "class": "Transporter",
+        "examples": ["VW Kastenwagen"],
+        "pricing": {
+          "22-8_hours_per_hour": 3.00,
+          "8-22_hours_per_hour": 9.10,
+          "first_day_flat": 91.00,
+          "from_second_day_flat": 72.00,
+          "week_flat": 328.00,
+          "km_rate": 0.32
+        }
+      },
+      {
+        "class": "Business VAN",
+        "examples": ["Seat Alhambra"],
+        "pricing": {
+          "22-8_hours_per_hour": 2.70,
+          "8-22_hours_per_hour": 9.40,
+          "first_day_flat": 94.00,
+          "from_second_day_flat": 69.00,
+          "week_flat": 370.00,
+          "km_rate": 0.29
+        }
+      },
+      {
+        "class": "Business PKW/Kombi",
+        "examples": ["VW Passat"],
+        "pricing": {
+          "22-8_hours_per_hour": 2.70,
+          "8-22_hours_per_hour": 9.40,
+          "first_day_flat": 94.00,
+          "from_second_day_flat": 69.00,
+          "week_flat": 370.00,
+          "km_rate": 0.26
+        }
+      },
+      {
+        "class": "Elektro Klein-PKW",
+        "examples": ["SEAT Mii"],
+        "pricing": {
+          "22-8_hours_per_hour": 2.40,
+          "8-22_hours_per_hour": 7.10,
+          "first_day_flat": 71.00,
+          "from_second_day_flat": 58.00,
+          "week_flat": 267.00,
+          "km_rate": 0.10
+        }
+      },
+      {
+        "class": "Elektro PKW",
+        "examples": ["Renault Zoe", "VW E-Golf"],
+        "pricing": {
+          "22-8_hours_per_hour": 2.50,
+          "8-22_hours_per_hour": 7.80,
+          "first_day_flat": 78.00,
+          "from_second_day_flat": 60.00,
+          "week_flat": 294.00,
+          "km_rate": 0.10
+        }
+      },
+      {
+        "class": "Elektro PKW Premium",
+        "examples": ["VW ID3", "Cupra Born"],
+        "pricing": {
+          "22-8_hours_per_hour": 3.50,
+          "8-22_hours_per_hour": 9.30,
+          "first_day_flat": 93.00,
+          "from_second_day_flat": 84.00,
+          "week_flat": 353.00,
+          "km_rate": 0.10
+        }
+      }
+    ],
+    "fees": [
+      { "description": "Buchung/Umbuchung durch das Kundenservice", "amount": 3.00 },
+      { "description": "Verspätete Fahrzeugrückgabe, unangekündigt (pro Stunde)", "amount": "Stundentarif + 20%" },
+      { "description": "Verspätete Fahrzeugrückgabe, rechtzeitig angekündigt", "amount": 10.00 },
+      { "description": "Falscher Stellplatz bei Rückgabe ohne Information", "amount": "ab 40.00" },
+      { "description": "Reinigung bei Verschmutzung, je nach Aufwand pro Stunde", "amount": 40.00 },
+      { "description": "Selbstverschuldeter Technikereinsatz (z.B. Batterie leer), je nach Aufwand", "amount": "ab 40.00" },
+      { "description": "Sicherheitspaket Selbstbehaltsreduktion je Fahrzeug/Klasse auf € 500,- (pro begonnene Buchungsstunde)", "amount": 0.25 },
+      { "description": "Bearbeitungsgebühr bei Unfall/Schaden", "amount": 40.00 },
+      { "description": "Bearbeitungsgebühr bei Strafzettel/Bußgeld", "amount": 12.00 },
+      { "description": "Rauchen im Fahrzeug", "amount": 40.00 },
+      { "description": "Verlust der Zulassungsbescheinigung", "amount": 100.00 },
+      { "description": "Verlust einer Kundenkarte", "amount": 15.00 },
+      { "description": "Verlust einer Tankkarte/Ladekarte oder Dauerparkkarte, eines Stellplatzschlüssels usw.", "amount": "ab 50.00" },
+      { "description": "Verlust eines Fahrzeugschlüssels, Schlüsselanhängers oder der Bordmappe", "amount": "ab 200.00" },
+      { "description": "Fahrzeugrückgabe mit weniger als ¼ Tankinhalt", "amount": 40.00 },
+      { "description": "Kein Fahrtantritt bei reserviertem Fahrzeug", "amount": "100% vom Zeitwert" },
+      {
+        "description": "Stornierung des Fahrzeugs innerhalb von 48 Stunden vor Buchungsanfang",
+        "amount": "2 Euro je begonnene Stunde, maximal 50% vom Zeitwert, maximal 90 Euro"
+      },
+      { "description": "Stornierung des Fahrzeugs bis 48 Stunden vor Buchungsanfang", "amount": "Kostenlos" }
+    ]
+  }
+}
