@@ -26,13 +26,16 @@ const messages: ChatCompletionMessageParam[] = [
 
 // Mock function to simulate external API calls
 async function getExternalData(action: string, parameters: any): Promise<string> {
-  // In a real scenario, this function would make actual API calls
   switch (action) {
     case "get_branches":
       const response = await fetch('https://go.api.gourban.services/v1/go-red/front/branches');
       return await response.text();
-    case "get_train_schedule":
-      return `The next train from ${parameters.from} to ${parameters.to} departs at 14:30.`;
+
+    case "get_vehicles":
+      const { branchId } = parameters;
+      const vehiclesResponse = await fetch(`https://go.api.gourban.services/v1/go-red/front/vehicles/categories?branchId=${branchId}`);
+      return await vehiclesResponse.text();
+
     default:
       return "I couldn't find the requested information.";
   }
@@ -44,6 +47,23 @@ const tools: ChatCompletionTool[] = [
     function: {
       name: "get_branches",
       description: "This endpoint returns a list of all booking locations.",
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "get_vehicles",
+      description: "Get the list of vehicles available at a specific branch.",
+      parameters: {
+        type: "object",
+        properties: {
+          branchId: {
+            type: "string",
+            description: "The ID of the branch to fetch vehicles for. ",
+          },
+        },
+        required: ["branchId"],
+      },
     },
   },
   {
@@ -88,13 +108,13 @@ export const POST: RequestHandler = async ({ request }) => {
   });
 
   const response = await openai.chat.completions.create(
-    {
-      messages,
-      model: MODEL,
-      tools: tools,
-      tool_choice: "auto",
-    } as ChatCompletionCreateParams,
-    options
+      {
+        messages,
+        model: MODEL,
+        tools: tools,
+        tool_choice: "auto",
+      } as ChatCompletionCreateParams,
+      options
   );
 
   const responseMessage = response.choices[0].message;
