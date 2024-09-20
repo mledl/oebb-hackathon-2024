@@ -117,17 +117,17 @@ export const POST: RequestHandler = async ({ request }) => {
 
     messages.push(responseMessage);
     messages.push({
-      role: "function",
-      name: functionName,
+      role: "tool",
+      tool_call_id: toolCall.id,
       content: functionResult,
     });
 
     const secondResponse = await openai.chat.completions.create(
-      {
-        messages,
-        model: MODEL,
-      },
-      options
+        {
+          messages,
+          model: MODEL,
+        },
+        options
     );
 
     const aiMessage = secondResponse.choices[0].message.content;
