@@ -60,7 +60,7 @@
 
 <main>
   <header>
-    <img src="/oebb-logo.jpg" alt="ÖBB Rail&Drive Logo" class="logo">
+    <img src="/oebb-logo.png" alt="ÖBB Rail&Drive Logo" class="logo">
     <h1>ÖBB Rail&Drive Chatbot</h1>
   </header>
 
@@ -104,10 +104,10 @@
   main {
     max-width: 800px;
     margin: 0 auto;
-    padding: 20px;
     display: flex;
     flex-direction: column;
-    height: 100vh;
+    padding: 2rem;
+    height: calc(100vh - 5rem);
   }
 
   header {
