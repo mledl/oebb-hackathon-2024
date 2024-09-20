@@ -65,14 +65,14 @@ async function getExternalData(
   switch (action) {
     case "get_branches":
       const response = await fetch(
-        "https://go.api.gourban.services/v1/go-red/front/branches"
+        "https://go.api.gourban.services/v1/rad8964z/front/branches"
       );
       return await response.text();
 
     case "get_vehicles":
       const { branchId } = parameters;
       const vehiclesResponse = await fetch(
-        `https://go.api.gourban.services/v1/go-red/front/vehicles/categories?branchId=${branchId}`
+        `https://go.api.gourban.services/v1/rad8964z/front/vehicles/categories?branchId=${branchId}`
       );
       return await vehiclesResponse.text();
     case "get_vehicle_price_info":
@@ -97,6 +97,7 @@ async function getExternalData(
         toTime: parameters.toTime,
         fromLocation: parameters.fromLocation,
         toLocation: parameters.toLocation,
+        car: parameters.car,
         status: "Sucessfull",
         note: "Car will be ready in time and please make sure the tank is fulled up at the end"
       }]);
@@ -187,12 +188,16 @@ const tools: ChatCompletionTool[] = [
             type: "string",
             description: "The date description when  the estimated rental ends ",
           },
+          car: {
+            type: "string",
+            description: "The car name or type that is reserved",
+          },
           reservedOnly: {
             type: "boolean",
             description: "Describes if the user is fine with also nearby stations that are not exactly the same",
           },
         },
-        required: ["fromLocation", "toLocation", "fromTime", "endsTime"],
+        required: ["fromLocation", "toLocation", "fromTime", "endsTime", "car"],
       },
     },
   },
