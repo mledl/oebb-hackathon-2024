@@ -8,6 +8,7 @@ import {
 import OpenAI from "openai";
 import type { ChatCompletionMessageParam } from "openai/resources/index.mjs";
 import fs from "fs";
+import { getAllItems, queryItems } from "$lib/cosmosClient";
 
 const systemPrompt = await fs.promises.readFile("src/system-prompt.md", {
   encoding: "utf-8",
@@ -26,6 +27,11 @@ const messages: ChatCompletionMessageParam[] = [
 
 export const POST: RequestHandler = async ({ request }) => {
   const { userMessage } = await request.json();
+
+  // Query Cosmos DB for relevant information
+  // console.warn(
+  //   (await getAllItems().fetchAll()).resources.map((r) => r.properties)
+  // );
 
   const openai: OpenAI = new OpenAI({
     baseURL: AZURE_OPENAI_BASE_URL,
