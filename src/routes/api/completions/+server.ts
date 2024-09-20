@@ -9,7 +9,7 @@ import OpenAI from "openai";
 import type { ChatCompletionMessageParam } from "openai/resources/index.mjs";
 import fs from "fs";
 
-const systemPrompt = await fs.promises.readFile("system-prompt.md", {
+const systemPrompt = await fs.promises.readFile("src/system-prompt.md", {
   encoding: "utf-8",
 });
 
@@ -28,13 +28,14 @@ export const POST: RequestHandler = async ({ request }) => {
   const { userMessage } = await request.json();
 
   const openai: OpenAI = new OpenAI({
-    baseURL: process.env.AZURE_OPENAI_BASE_URL,
+    baseURL: AZURE_OPENAI_BASE_URL,
+    apiKey: AZURE_OPENAI_API_KEY,
     defaultQuery: { "api-version": "2024-05-01-preview" },
-    defaultHeaders: { "api-key": process.env.AZURE_OPENAI_API_KEY },
+    defaultHeaders: { "api-key": AZURE_OPENAI_API_KEY },
   });
 
   const options: OpenAI.RequestOptions = {};
-  options.path = `openai/deployments/${process.env.MODEL}/chat/completions`;
+  options.path = `openai/deployments/${MODEL}/chat/completions`;
 
   messages.push({
     role: "user",
@@ -44,12 +45,15 @@ export const POST: RequestHandler = async ({ request }) => {
   const response = await openai.chat.completions.create(
     {
       messages,
-      model: process.env.MODEL!,
+      model: MODEL,
     },
     options
   );
 
   const aiMessage = response.choices[0].message.content;
+
+  console.warn(response.choices[0].message.content);
+  console.warn(response.choices[0].message);
 
   messages.push({
     role: "assistant",

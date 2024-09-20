@@ -3,12 +3,12 @@
   let chatbotResponse = '';
 
   async function handleSubmit() {
-    const response = await fetch('/', {
+    const response = await fetch('api/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ message: userInput })
+      body: JSON.stringify({ userMessage: userInput })
     });
 
     const data = await response.json();
