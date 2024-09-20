@@ -12,14 +12,15 @@ import type {
   ChatCompletionCreateParams,
 } from "openai/resources/index.mjs";
 import fs from "fs";
-// import { getAllItems, queryItems } from "$lib/cosmosClient";
 import { carprices } from "./carprices";
 
+// Load system prompt
 const systemPrompt = await fs.promises.readFile("src/system-prompt.md", {
   encoding: "utf-8",
 });
 
-const messages: ChatCompletionMessageParam[] = [
+// Initialize the message queue
+const initializeMessages = (): ChatCompletionMessageParam[] => [
   {
     role: "system",
     content: systemPrompt,
@@ -30,32 +31,81 @@ const messages: ChatCompletionMessageParam[] = [
   },
 ];
 
-// Mock function to simulate external API calls
-async function getExternalData(
+// Haversine formula to calculate distance between two locations
+const calculateDistance = (
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number
+): number => {
+  const R = 6371; // Radius of the Earth in kilometers
+  const dLat = (lat2 - lat1) * (Math.PI / 180);
+  const dLon = (lon2 - lon1) * (Math.PI / 180);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLon / 2) +
+    Math.cos(lat1 * (Math.PI / 180)) *
+      Math.cos(lat2 * (Math.PI / 180)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c; // Distance in kilometers
+};
+
+// Simulate external API calls
+const getExternalData = async (
   action: string,
-  parameters: any
-): Promise<string> {
+  parameters: any,
+  userLocation: { lat: number; lon: number } | null
+): Promise<string> => {
   switch (action) {
     case "get_branches":
-      const response = await fetch(
-        "https://go.api.gourban.services/v1/go-red/front/branches"
-      );
-      return await response.text();
+      const branches = await fetchBranches(userLocation);
+      return JSON.stringify(branches);
 
     case "get_vehicles":
-      const { branchId } = parameters;
-      const vehiclesResponse = await fetch(
-        `https://go.api.gourban.services/v1/go-red/front/vehicles/categories?branchId=${branchId}`
-      );
-      return await vehiclesResponse.text();
+      return await fetchVehicles(parameters.branchId);
+
     case "get_vehicle_price_info":
       return JSON.stringify(carprices);
+
     default:
       return "I couldn't find the requested information.";
   }
-}
+};
 
-const tools: ChatCompletionTool[] = [
+// Fetch branch data and calculate distances
+const fetchBranches = async (
+  userLocation: { lat: number; lon: number } | null
+): Promise<any[]> => {
+  const response = await fetch(
+    "https://go.api.gourban.services/v1/go-red/front/branches"
+  );
+  const branches = await response.json();
+
+  if (userLocation) {
+    branches.forEach((branch: any) => {
+      const { coordinates } = branch.position;
+      branch.distance = calculateDistance(
+        userLocation.lat,
+        userLocation.lon,
+        coordinates[1], // latitude
+        coordinates[0] // longitude
+      );
+    });
+  }
+  return branches;
+};
+
+// Fetch vehicles available at a branch
+const fetchVehicles = async (branchId: string): Promise<string> => {
+  const response = await fetch(
+    `https://go.api.gourban.services/v1/go-red/front/vehicles/categories?branchId=${branchId}`
+  );
+  return await response.text();
+};
+
+// OpenAI chat completion tool setup
+const setupTools = (): ChatCompletionTool[] => [
   {
     type: "function",
     function: {
@@ -73,7 +123,7 @@ const tools: ChatCompletionTool[] = [
         properties: {
           branchId: {
             type: "string",
-            description: "The ID of the branch to fetch vehicles for. ",
+            description: "The ID of the branch to fetch vehicles for.",
           },
         },
         required: ["branchId"],
@@ -110,13 +160,26 @@ const tools: ChatCompletionTool[] = [
   },
 ];
 
-export const POST: RequestHandler = async ({ request }) => {
-  const { userMessage } = await request.json();
+// Function to call OpenAI's API for chat completions
+const callOpenAI = async (
+  openai: OpenAI,
+  messages: ChatCompletionMessageParam[],
+  options: OpenAI.RequestOptions
+) => {
+  return await openai.chat.completions.create(
+    {
+      messages,
+      model: MODEL,
+      tools: setupTools(),
+      tool_choice: "auto",
+    } as ChatCompletionCreateParams,
+    options
+  );
+};
 
-  // Query Cosmos DB for relevant information
-  // console.warn(
-  //   (await getAllItems().fetchAll()).resources.map((r) => r.properties)
-  // );
+// Handle POST request
+export const POST: RequestHandler = async ({ request }) => {
+  const { userMessage, userLocation } = await request.json();
 
   const openai: OpenAI = new OpenAI({
     baseURL: AZURE_OPENAI_BASE_URL,
@@ -125,24 +188,18 @@ export const POST: RequestHandler = async ({ request }) => {
     defaultHeaders: { "api-key": AZURE_OPENAI_API_KEY },
   });
 
-  const options: OpenAI.RequestOptions = {};
-  options.path = `openai/deployments/${MODEL}/chat/completions`;
-
+  let messages = initializeMessages();
   messages.push({
     role: "user",
     content: userMessage,
   });
 
-  const response = await openai.chat.completions.create(
-    {
-      messages,
-      model: MODEL,
-      tools: tools,
-      tool_choice: "auto",
-    } as ChatCompletionCreateParams,
-    options
-  );
+  const options: OpenAI.RequestOptions = {
+    path: `openai/deployments/${MODEL}/chat/completions`,
+  };
 
+  // Get the first response from OpenAI
+  const response = await callOpenAI(openai, messages, options);
   const responseMessage = response.choices[0].message;
 
   if (responseMessage.tool_calls) {
@@ -150,7 +207,12 @@ export const POST: RequestHandler = async ({ request }) => {
     const functionName = toolCall.function.name;
     const functionArgs = JSON.parse(toolCall.function.arguments);
 
-    const functionResult = await getExternalData(functionName, functionArgs);
+    // Call the appropriate tool and pass user location if needed
+    const functionResult = await getExternalData(
+      functionName,
+      functionArgs,
+      userLocation
+    );
 
     messages.push(responseMessage);
     messages.push({
@@ -159,15 +221,10 @@ export const POST: RequestHandler = async ({ request }) => {
       content: functionResult,
     });
 
-    const secondResponse = await openai.chat.completions.create(
-      {
-        messages,
-        model: MODEL,
-      },
-      options
-    );
-
+    // Get a second response with tool results
+    const secondResponse = await callOpenAI(openai, messages, options);
     const aiMessage = secondResponse.choices[0].message.content;
+
     messages.push({
       role: "assistant",
       content: aiMessage,
