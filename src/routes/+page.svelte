@@ -1,19 +1,44 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
+
+  interface Message {
+    text: string;
+    isUser: boolean;
+    username: string;
+  }
+
   let userInput = '';
-  let chatbotResponse = '';
+  let conversation: Message[] = [];
+  let chatContainer: HTMLElement;
+
+  onMount(() => {
+    conversation = [
+      { text: "Hello! How can I assist you with ÖBB Rail&Drive today?", isUser: false, username: "Railey" }
+    ];
+  });
 
   async function handleSubmit() {
+    if (!userInput.trim()) return;
+
+    const userMessage = userInput.trim();
+    conversation = [...conversation, { text: userMessage, isUser: true, username: "Ridey" }];
+    userInput = '';
+
     const response = await fetch('api/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ userMessage: userInput })
+      body: JSON.stringify({ userMessage })
     });
 
     const data = await response.json();
-    chatbotResponse = data.reply;
-    userInput = '';
+    conversation = [...conversation, { text: data.aiMessage, isUser: false, username: "Railey" }];
+
+    // Scroll to bottom of chat
+    setTimeout(() => {
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }, 0);
   }
 </script>
 
@@ -23,23 +48,25 @@
     <h1>ÖBB Rail&Drive Chatbot</h1>
   </header>
 
-  <div class="chat-container">
-    <div class="chat-output">
-      {#if chatbotResponse}
-        <p>{chatbotResponse}</p>
-      {:else}
-        <p>Hello! How can I assist you with ÖBB Rail&Drive today?</p>
-      {/if}
-    </div>
-    <form on:submit|preventDefault={handleSubmit}>
-      <input 
-        type="text" 
-        bind:value={userInput} 
-        placeholder="Type your question here..."
-      >
-      <button type="submit">Send</button>
-    </form>
+  <div class="chat-container" bind:this={chatContainer}>
+    {#each conversation as message}
+      <div class="message {message.isUser ? 'user' : 'bot'}">
+        <div class="username">{message.username}</div>
+        <div class="bubble">
+          {message.text}
+        </div>
+      </div>
+    {/each}
   </div>
+
+  <form on:submit|preventDefault={handleSubmit}>
+    <input 
+      type="text" 
+      bind:value={userInput} 
+      placeholder="Type your question here..."
+    >
+    <button type="submit">Send</button>
+  </form>
 </main>
 
 <style>
@@ -51,18 +78,20 @@
   }
 
   main {
-    max-width: 1200px;
+    max-width: 800px;
     margin: 0 auto;
     padding: 20px;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
   }
 
   header {
     display: flex;
     align-items: center;
-    margin-bottom: 30px;
     background-color: #0c2340;
     padding: 15px;
-    border-radius: 8px;
+    border-radius: 8px 8px 0 0;
   }
 
   .logo {
@@ -74,25 +103,69 @@
     color: #ffffff;
     font-size: 24px;
     font-weight: 600;
+    margin: 0;
   }
 
   .chat-container {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 20px;
     background-color: #f2f2f2;
-    border-radius: 8px;
-    overflow: hidden;
+    border: 1px solid #e0e0e0;
+    border-top: none;
   }
 
-  .chat-output {
-    min-height: 200px;
-    padding: 20px;
+  .message {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 15px;
+  }
+
+  .user {
+    align-items: flex-end;
+  }
+
+  .username {
+    font-size: 14px;
+    margin-bottom: 5px;
+    font-weight: bold;
+  }
+
+  .user .username {
+    color: #cc0033;
+  }
+
+  .bot .username {
+    color: #0c2340;
+  }
+
+  .bubble {
+    max-width: 70%;
+    padding: 10px 15px;
+    border-radius: 18px;
+    font-size: 16px;
+    line-height: 1.4;
+  }
+
+  .user .bubble {
+    background-color: #cc0033;
+    color: white;
+    border-bottom-right-radius: 4px;
+  }
+
+  .bot .bubble {
     background-color: #ffffff;
-    border-bottom: 1px solid #e0e0e0;
+    color: #333333;
+    border-bottom-left-radius: 4px;
   }
 
   form {
     display: flex;
     padding: 15px;
     background-color: #f2f2f2;
+    border: 1px solid #e0e0e0;
+    border-top: none;
+    border-radius: 0 0 8px 8px;
   }
 
   input {

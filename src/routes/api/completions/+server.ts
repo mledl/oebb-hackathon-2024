@@ -52,9 +52,6 @@ export const POST: RequestHandler = async ({ request }) => {
 
   const aiMessage = response.choices[0].message.content;
 
-  console.warn(response.choices[0].message.content);
-  console.warn(response.choices[0].message);
-
   messages.push({
     role: "assistant",
     content: aiMessage,
