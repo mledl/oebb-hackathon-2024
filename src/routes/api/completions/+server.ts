@@ -196,7 +196,7 @@ const tools: ChatCompletionTool[] = [
       },
     },
   },
-  {
+  /*{
     type: "function",
     function: {
       name: "get_train_schedule",
@@ -208,11 +208,15 @@ const tools: ChatCompletionTool[] = [
             type: "string",
             description: "The departure station",
           },
+          to: {
+            type: "string",
+            description: "The destination station",
+          },
         },
-        required: ["from"],
+        required: ["from", "to"],
       },
     },
-  },
+  },*/
 ];
 
 export const POST: RequestHandler = async ({ request }) => {
