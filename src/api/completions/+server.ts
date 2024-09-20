@@ -5,37 +5,56 @@ import {
   AZURE_OPENAI_BASE_URL,
   MODEL,
 } from "$env/static/private";
+import OpenAI from "openai";
+import type { ChatCompletionMessageParam } from "openai/resources/index.mjs";
+import fs from "fs";
+
+const systemPrompt = await fs.promises.readFile("system-prompt.md", {
+  encoding: "utf-8",
+});
+
+const messages: ChatCompletionMessageParam[] = [
+  {
+    role: "system",
+    content: systemPrompt,
+  },
+  {
+    role: "assistant",
+    content: "Wie kann ich dir dein Fahrerlebnis heute verschönern?",
+  },
+];
 
 export const POST: RequestHandler = async ({ request }) => {
-  const { message } = await request.json();
+  const { userMessage } = await request.json();
 
-  const response = await fetch(
-    `${AZURE_OPENAI_BASE_URL}/openai/deployments/${MODEL}/completions?api-version=2023-05-15`,
+  const openai: OpenAI = new OpenAI({
+    baseURL: process.env.AZURE_OPENAI_BASE_URL,
+    defaultQuery: { "api-version": "2024-05-01-preview" },
+    defaultHeaders: { "api-key": process.env.AZURE_OPENAI_API_KEY },
+  });
+
+  const options: OpenAI.RequestOptions = {};
+  options.path = `openai/deployments/${process.env.MODEL}/chat/completions`;
+
+  messages.push({
+    role: "user",
+    content: userMessage,
+  });
+
+  const response = await openai.chat.completions.create(
     {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "api-key": AZURE_OPENAI_API_KEY,
-      },
-      body: JSON.stringify({
-        prompt: message,
-        max_tokens: 150,
-        temperature: 0.7,
-        top_p: 1,
-        frequency_penalty: 0,
-        presence_penalty: 0,
-        stop: null,
-      }),
-    }
+      messages,
+      model: process.env.MODEL!,
+    },
+    options
   );
 
-  if (!response.ok) {
-    return json(
-      { error: "Failed to get response from Azure OpenAI" },
-      { status: 500 }
-    );
-  }
+  const aiMessage = response.choices[0].message.content;
 
-  const data = await response.json();
-  return json({ reply: data.choices[0].text.trim() });
+  messages.push({
+    role: "assistant",
+    content: aiMessage,
+  });
+
+  return json({ aiMessage });
 };
